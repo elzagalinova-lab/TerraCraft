@@ -1,98 +1,360 @@
-  /* ===== Галерея из Firebase ===== */
-  const galleryGrid = document.getElementById('galleryGrid');
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Вторая жизнь — цифровая мастерская апсайклинга</title>
+<style>
+  :root{--bg:#f6f1e9;--ink:#1f2a24;--accent:#2f6b4f;--accent2:#c96f4a;--card:#fffdf8;--muted:#6b776f;--line:#e3dccf}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.6}
+  a{color:var(--accent);text-decoration:none}
+  header{position:sticky;top:0;z-index:10;background:rgba(246,241,233,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+  nav{max-width:1100px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+  .logo{font-weight:800;font-size:1.2rem;letter-spacing:.5px}
+  .logo span{color:var(--accent2)}
+  nav ul{list-style:none;display:flex;gap:18px;flex-wrap:wrap}
+  nav a{font-size:.95rem;color:var(--ink);opacity:.8;transition:color .2s}
+  nav a:hover{opacity:1;color:var(--accent)}
+  section{max-width:1100px;margin:0 auto;padding:60px 20px;scroll-margin-top:70px}
+  .hero{max-width:1100px;margin:0 auto;padding:70px 20px 50px;display:grid;grid-template-columns:1.2fr .8fr;gap:40px;align-items:center}
+  .hero h1{font-size:clamp(2rem,5vw,3.4rem);line-height:1.1;margin-bottom:18px}
+  .hero h1 em{font-style:normal;color:var(--accent2)}
+  .hero p{font-size:1.1rem;color:var(--muted);max-width:520px;margin-bottom:26px}
+  .btn{display:inline-block;padding:13px 26px;border-radius:999px;background:var(--accent);color:#fff;font-weight:600;border:none;cursor:pointer;font-size:1rem;transition:.2s}
+  .btn:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(47,107,79,.3)}
+  .btn.ghost{background:transparent;color:var(--accent);border:2px solid var(--accent)}
+  .hero-visual{aspect-ratio:1;border-radius:24px;overflow:hidden;border:1px solid var(--line);background:linear-gradient(135deg,#2f6b4f22,#c96f4a33);display:flex;align-items:center;justify-content:center;font-size:6rem}
+  .hero-visual img{width:100%;height:100%;object-fit:cover;display:block}
+  .section-title{font-size:1.9rem;margin-bottom:10px}
+  .section-sub{color:var(--muted);margin-bottom:34px;max-width:640px}
+  .grid{display:grid;gap:20px}
+  .grid-3{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+  .grid-4{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px;transition:.2s}
+  .card:hover{transform:translateY(-4px);box-shadow:0 12px 28px rgba(31,42,36,.08)}
+  .card-img{width:100%;aspect-ratio:4/3;border-radius:12px;overflow:hidden;margin-bottom:12px;background:#2f6b4f11;display:flex;align-items:center;justify-content:center;font-size:3rem}
+  .card-img img{width:100%;height:100%;object-fit:cover;display:block}
+  .card h3{font-size:1.15rem;margin-bottom:8px}
+  .card p{color:var(--muted);font-size:.95rem}
+  .tag{display:inline-block;font-size:.75rem;padding:4px 10px;border-radius:999px;background:#2f6b4f18;color:var(--accent);margin-top:12px;font-weight:600}
+  .gen{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:30px}
+  .gen-row{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+  select{padding:12px 16px;border-radius:12px;border:1px solid var(--line);background:#fff;font-size:1rem;min-width:240px;cursor:pointer}
+  .gen-result{margin-top:24px;display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+  .idea{background:#2f6b4f08;border:1px dashed var(--accent);border-radius:14px;padding:18px}
+  .idea .lvl{font-size:.75rem;font-weight:700;color:var(--accent2);text-transform:uppercase;letter-spacing:.5px}
+  .idea h4{margin:6px 0;font-size:1.05rem}
+  .idea p{font-size:.9rem;color:var(--muted)}
+  .work{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;transition:.2s}
+  .work:hover{transform:translateY(-4px);box-shadow:0 12px 28px rgba(31,42,36,.08)}
+  .work-img{aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#2f6b4f22,#c96f4a33);overflow:hidden;font-size:3rem}
+  .work-img img{width:100%;height:100%;object-fit:cover;display:block}
+  .work-body{padding:16px}
+  .work-body h4{font-size:1rem;margin-bottom:4px}
+  .work-body p{font-size:.85rem;color:var(--muted)}
+  .work-foot{display:flex;justify-content:space-between;align-items:center;margin-top:12px;font-size:.85rem;color:var(--muted)}
+  .like{background:none;border:none;cursor:pointer;font-size:1rem;color:var(--accent2);font-weight:700}
+  .work-del{background:none;border:none;cursor:pointer;color:var(--muted);font-size:.85rem}
+  .work-del:hover{color:var(--accent2)}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:18px;text-align:center}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:26px 16px}
+  .stat b{font-size:2.2rem;color:var(--accent);display:block}
+  .stat span{font-size:.9rem;color:var(--muted)}
+  .progress-wrap{display:flex;align-items:center;gap:14px;margin-bottom:20px;flex-wrap:wrap}
+  .progress-bar{flex:1;min-width:180px;height:10px;border-radius:999px;background:#2f6b4f18;overflow:hidden}
+  .progress-fill{height:100%;width:0;background:var(--accent);border-radius:999px;transition:width .3s}
+  .progress-wrap span{font-size:.9rem;color:var(--muted);font-weight:600;white-space:nowrap}
+  .steps{list-style:none;counter-reset:step}
+  .steps li{position:relative;padding:16px 16px 16px 58px;border:1px solid var(--line);border-radius:14px;margin-bottom:12px;background:var(--card);transition:.2s;cursor:pointer}
+  .steps li:hover{border-color:var(--accent)}
+  .steps li::before{counter-increment:step;content:counter(step);position:absolute;left:16px;top:50%;transform:translateY(-50%);width:30px;height:30px;border-radius:50%;background:#2f6b4f18;color:var(--accent);font-weight:800;display:flex;align-items:center;justify-content:center;font-size:.9rem}
+  .steps li.done{opacity:.65;border-color:var(--accent)}
+  .steps li.done::before{content:'✓';background:var(--accent);color:#fff}
+  .steps li h4{font-size:1rem;margin-bottom:4px}
+  .steps li p{font-size:.9rem;color:var(--muted)}
+  .steps li .time{display:inline-block;margin-top:8px;font-size:.75rem;font-weight:700;color:var(--accent2);background:#c96f4a14;padding:3px 10px;border-radius:999px}
+  .upload{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:30px;margin-bottom:30px;position:relative}
+  .upload.locked{opacity:.55;pointer-events:none}
+  .upload-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .upload label{display:block;font-size:.82rem;color:var(--muted);margin:14px 0 6px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+  .upload input[type=text]{width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:#fff;font-size:1rem;font-family:inherit}
+  .upload input[type=text]:focus{outline:none;border-color:var(--accent)}
+  .upload input[type=file]{width:100%;padding:10px;border-radius:12px;border:1px dashed var(--accent);background:#2f6b4f08;font-size:.9rem;cursor:pointer}
+  .upload-preview{margin-top:14px;border-radius:14px;overflow:hidden;border:1px solid var(--line);display:none;max-width:320px}
+  .upload-preview img{width:100%;display:block}
+  .upload-actions{margin-top:18px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .notice{margin-top:14px;padding:12px 16px;border-radius:12px;background:#2f6b4f14;border:1px solid var(--accent);color:var(--accent);font-size:.9rem;font-weight:600;display:none}
+  .notice.show{display:block}
+  #uploadHint{color:var(--accent2);font-weight:600;margin-bottom:8px;display:none}
+  .auth-bar{max-width:1100px;margin:0 auto;padding:10px 20px 14px;display:flex;justify-content:flex-end;gap:10px;align-items:center;font-size:.9rem}
+  .auth-bar .who{color:var(--muted)}
+  .auth-bar button{background:none;border:1px solid var(--line);border-radius:999px;padding:6px 14px;cursor:pointer;font-size:.85rem;color:var(--accent);font-weight:600}
+  .auth-bar button:hover{border-color:var(--accent)}
+  .auth-modal{position:fixed;inset:0;z-index:100;background:rgba(31,42,36,.55);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:20px}
+  .auth-modal.open{display:flex}
+  .auth-box{max-width:420px;width:100%;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:28px;position:relative}
+  .auth-box h3{font-size:1.3rem;margin-bottom:6px}
+  .auth-box p{color:var(--muted);font-size:.9rem;margin-bottom:10px}
+  .auth-box label{display:block;font-size:.8rem;color:var(--muted);margin:12px 0 5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+  .auth-box input{width:100%;padding:11px 13px;border-radius:11px;border:1px solid var(--line);background:#fff;font-size:1rem;font-family:inherit}
+  .auth-box input:focus{outline:none;border-color:var(--accent)}
+  .auth-box .err{color:var(--accent2);font-size:.85rem;margin-top:10px;min-height:1.2em}
+  .auth-tabs{display:flex;gap:8px;margin-bottom:16px}
+  .auth-tabs button{flex:1;padding:9px;border-radius:10px;border:1px solid var(--line);background:transparent;cursor:pointer;font-weight:700;font-size:.9rem;color:var(--muted)}
+  .auth-tabs button.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .auth-close{position:absolute;top:12px;right:12px;background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--muted)}
+  .auth-submit{width:100%;margin-top:16px}
+  footer{border-top:1px solid var(--line);padding:34px 20px;text-align:center;color:var(--muted);font-size:.9rem;margin-top:40px}
+  @media(max-width:760px){.hero{grid-template-columns:1fr;padding-top:40px}.hero-visual{max-width:320px}.upload-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
 
-  function renderGallery(docs){
-    const sorted = docs.sort((a,b) => b.data().likes - a.data().likes);
-    
-    galleryGrid.innerHTML = sorted.map(d => {
-      const w = d.data();
-      return `
-      <div class="work" data-id="${d.id}">
-        <div class="work-img">
-          <span>${w.emoji||'📦'}</span>
-          <img src="${w.img}" alt="${w.title}" onload="this.previousElementSibling.style.display='none'" onerror="this.style.display='none'">
-        </div>
-        <div class="work-body">
-          <h4>${w.title}</h4>
-          <p>${w.author} · ${w.tag}</p>
-          <div class="work-foot">
-            <button class="like" data-id="${d.id}">❤ <span>${w.likes}</span></button>
-            ${(w.owner===getSession()?.email) ? `<button class="work-del" data-id="${d.id}">удалить</button>` : `<span>арт-объект</span>`}
-          </div>
-        </div>
-      </div>`;
-    }).join('');
+<header>
+  <nav>
+    <div class="logo">Вторая<span>жизнь</span></div>
+    <ul>
+      <li><a href="#ideas">Идеи</a></li>
+      <li><a href="#techniques">Техники</a></li>
+      <li><a href="#steps">Этапы</a></li>
+      <li><a href="#gallery">Галерея</a></li>
+      <li><a href="#stats">Эко-счётчик</a></li>
+    </ul>
+  </nav>
+</header>
+
+<div class="auth-bar" id="authBar">
+  <span class="who" id="authWho">Вы не вошли</span>
+  <button id="authOpen">Войти / Регистрация</button>
+</div>
+
+<div class="auth-modal" id="authModal">
+  <div class="auth-box">
+    <button class="auth-close" id="authClose">×</button>
+    <div class="auth-tabs">
+      <button data-tab="login" class="active">Вход</button>
+      <button data-tab="reg">Регистрация</button>
+    </div>
+    <h3 id="authTitle">Вход</h3>
+    <p id="authHint">Введите e-mail и пароль.</p>
+    <label>E-mail</label>
+    <input type="email" id="authEmail" placeholder="you@example.com">
+    <label>Пароль</label>
+    <input type="password" id="authPass" placeholder="Минимум 4 символа">
+    <div id="authRegFields" style="display:none">
+      <label>Имя (как показывать в галерее)</label>
+      <input type="text" id="authName" placeholder="Аня, 17 лет">
+    </div>
+    <div class="err" id="authErr"></div>
+    <button class="btn auth-submit" id="authSubmit">Войти</button>
+  </div>
+</div>
+
+<section class="hero">
+  <div>
+    <h1>Вещь не мусор —<br>вещь <em>материал</em></h1>
+    <p>«Вторая жизнь» — цифровая мастерская апсайклинга и арт-реставрации. Превратите старую вещь в арт-объект: получите идею, пройдите мастер-класс, покажите результат сообществу.</p>
+    <a class="btn" href="#ideas">Найти идею для вещи</a>
+    <a class="btn ghost" href="#gallery" style="margin-left:10px">Смотреть галерею</a>
+  </div>
+  <div class="hero-visual">
+    <span id="heroPlaceholder">♻️</span>
+    <img src="images/hero.jpg" alt="Апсайклинг" onload="document.getElementById('heroPlaceholder').style.display='none'" onerror="this.style.display='none'">
+  </div>
+</section>
+
+<section id="ideas">
+  <h2 class="section-title">Генератор идей</h2>
+  <p class="section-sub">Выберите, что у вас залежалось — платформа предложит варианты арт-объектов с уровнем сложности.</p>
+  <div class="gen">
+    <div class="gen-row">
+      <select id="itemSelect"><option value="">— выберите вещь —</option></select>
+      <button class="btn" id="genBtn">Придумать</button>
+    </div>
+    <div class="gen-result" id="genResult">
+      <div class="idea"><span class="lvl">Подсказка</span><h4>Начните с выбора</h4><p>Выберите вещь из списка, и здесь появятся идеи её превращения.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="techniques">
+  <h2 class="section-title">Каталог техник</h2>
+  <p class="section-sub">От простого к сложному — выберите технику под свою вещь и уровень.</p>
+  <div class="grid grid-4">
+    <div class="card"><div class="card-img">🖼️<img src="images/tech-decoupage.jpg" alt="Декупаж" onload="this.previousElementSibling.style.display='none'" onerror="this.style.display='none'"></div><h3>Декупаж</h3><p>Перенос изображений на дерево, стекло, ткань.</p><span class="tag">Начальный</span></div>
+    <div class="card"><div class="card-img">🧵<img src="images/tech-collage.jpg" alt="Текстильный коллаж" onload="this.previousElementSibling.style.display='none'" onerror="this.style.display='none'"></div><h3>Текстильный коллаж</h3><p>Лоскуты, аппликация, стёжка для джинсовки и сумок.</p><span class="tag">Средний</span></div>
+    <div class="card"><div class="card-img">🪟<img src="images/tech-mosaic.jpg" alt="Мозаика" onload="this.previousElementSibling.style.display='none'" onerror="this.style.display='none'"></div><h3>Мозаика из стекла</h3><p>Смальта и осколки для столешниц и подносов.</p><span class="tag">Продвинутый</span></div>
+    <div class="card"><div class="card-img">🖌️<img src="images/tech-paint.jpg" alt="Роспись" onload="this.previousElementSibling.style.display='none'" onerror="this.style.display='none'"></div><h3>Роспись по дереву</h3><p>Акрил, трафареты, орнаменты для мебели.</p><span class="tag">Средний</span></div>
+    <div class="card"><div class="card-img">🪑<img src="images/tech-reupholstery.jpg" alt="Перетяжка" onload="this.previousElementSibling.style.display='none'" onerror="this.style.display='none'"></div><h3>Перетяжка мебели</h3><p>Новая обивка и реставрация каркаса.</p><span class="tag">Продвинутый</span></div>
+    <div class="card"><div class="card-img">🧶<img src="images/tech-weaving.jpg" alt="Плетение" onload="this.previousElementSibling.style.display='none'" onerror="this.style.display='none'"></div><h3>Плетение из лоскутов</h3><p>Коврики и корзины из старого трикотажа.</p><span class="tag">Начальный</span></div>
+    <div class="card"><div class="card-img">🫙<img src="images/tech-glass.jpg" alt="Стекло" onload="this.previousElementSibling.style.display='none'" onerror="this.style.display='none'"></div><h3>Апсайклинг стекла</h3><p>Банки в светильники, вазы, органайзеры.</p><span class="tag">Начальный</span></div>
+    <div class="card"><div class="card-img">🎨<img src="images/tech-digital.jpg" alt="Эскиз" onload="this.previousElementSibling.style.display='none'" onerror="this.style.display='none'"></div><h3>Цифровой эскиз</h3><p>Наложение узора на фото вещи до работы.</p><span class="tag">Бонус</span></div>
+  </div>
+</section>
+
+<section id="steps">
+  <h2 class="section-title">Пошаговые этапы</h2>
+  <p class="section-sub">Выберите технику — и получите план: от подготовки вещи до финального покрытия. Отмечайте шаги, прогресс сохраняется.</p>
+  <div class="gen" style="margin-bottom:24px">
+    <div class="gen-row">
+      <select id="stepTech">
+        <option value="decoupage">Декупаж</option>
+        <option value="collage">Текстильный коллаж</option>
+        <option value="mosaic">Мозаика из стекла</option>
+        <option value="paint">Роспись по дереву</option>
+        <option value="reupholstery">Перетяжка мебели</option>
+        <option value="weaving">Плетение из лоскутов</option>
+        <option value="glass">Апсайклинг стекла</option>
+      </select>
+      <button class="btn" id="stepBtn">Показать этапы</button>
+    </div>
+  </div>
+  <div class="panel" style="background:var(--card);border:1px solid var(--line);border-radius:20px;padding:26px">
+    <div class="progress-wrap">
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+      <span id="progressText">0 из 0 шагов</span>
+    </div>
+    <ol class="steps" id="stepsList"></ol>
+  </div>
+</section>
+
+<section id="gallery">
+  <h2 class="section-title">Галерея сообщества</h2>
+  <p class="section-sub">Работы участников. Поставьте лайк понравившемуся арт-объекту или загрузите свою работу.</p>
+  <div class="upload locked" id="uploadBox">
+    <h3 style="margin-bottom:6px">Загрузить свою работу</h3>
+    <p style="color:var(--muted);font-size:.92rem;margin-bottom:6px">Фото, название и тег — работа сразу появится в галерее. Автор подставляется из аккаунта.</p>
+    <p id="uploadHint">Войдите, чтобы загружать работы.</p>
+    <div class="upload-grid">
+      <div>
+        <label>Фото работы</label>
+        <input type="file" id="upFile" accept="image/*">
+        <div class="upload-preview" id="upPreview"><img id="upPreviewImg" alt="Превью"></div>
+      </div>
+      <div>
+        <label>Название</label>
+        <input type="text" id="upTitle" placeholder="Например: Шоппер из джинсовки">
+        <label>Тег</label>
+        <input type="text" id="upTag" placeholder="#текстиль">
+      </div>
+    </div>
+    <div class="upload-actions">
+      <button class="btn" id="upBtn">Опубликовать</button>
+      <button class="btn ghost" id="upClear">Очистить</button>
+    </div>
+    <div class="notice" id="upNotice">Работа опубликована! Она уже в галерее.</div>
+  </div>
+  <div class="grid grid-3" id="galleryGrid"></div>
+</section>
+
+<section id="stats">
+  <h2 class="section-title">Эко-счётчик сообщества</h2>
+  <p class="section-sub">Сколько вещей уже получили вторую жизнь на платформе.</p>
+  <div class="stats">
+    <div class="stat"><b id="saved">0</b><span>вещей спасено</span></div>
+    <div class="stat"><b id="masters">0</b><span>мастера</span></div>
+    <div class="stat"><b id="works">0</b><span>работ в галерее</span></div>
+    <div class="stat"><b id="co2">0</b><span>кг CO₂ сэкономлено</span></div>
+  </div>
+</section>
+
+<footer>«Вторая жизнь» — цифровая мастерская апсайклинга и арт-реставрации</footer>
+
+<!-- МОДУЛЬ FIREBASE -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, increment, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  // ⚠️ ВСТАВЬ СЮДА СВОЙ КОД ИЗ FIREBASE
+  const firebaseConfig = {
+    apiKey: "ТВОЙ_API_KEY",
+    authDomain: "ТВОЙ_PROJECT.firebaseapp.com",
+    projectId: "ТВОЙ_PROJECT_ID",
+    storageBucket: "ТВОЙ_PROJECT.appspot.com",
+    messagingSenderId: "ТВОЙ_SENDER_ID",
+    appId: "ТВОЙ_APP_ID"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const worksCollection = collection(db, "works");
+
+  /* ===== Аккаунты (localStorage) ===== */
+  const USERS_KEY='secondLifeUsers', SESSION_KEY='secondLifeSession';
+  function getUsers(){try{return JSON.parse(localStorage.getItem(USERS_KEY))||{};}catch(e){return {};}}
+  function setUsers(u){localStorage.setItem(USERS_KEY,JSON.stringify(u));}
+  function getSession(){try{return JSON.parse(localStorage.getItem(SESSION_KEY));}catch(e){return null;}}
+  function setSession(s){localStorage.setItem(SESSION_KEY,JSON.stringify(s));}
+  function clearSession(){localStorage.removeItem(SESSION_KEY);}
+
+  const authModal=document.getElementById('authModal');
+  const authTitle=document.getElementById('authTitle');
+  const authHint=document.getElementById('authHint');
+  const authErr=document.getElementById('authErr');
+  const authRegFields=document.getElementById('authRegFields');
+  const authSubmit=document.getElementById('authSubmit');
+  let authMode='login';
+
+  function updateAuthUI(){
+    const s=getSession();
+    const uploadBox=document.getElementById('uploadBox');
+    const uploadHint=document.getElementById('uploadHint');
+    if(s){
+      document.getElementById('authWho').innerHTML=`Вы вошли как <b>${s.name}</b>`;
+      document.getElementById('authOpen').textContent='Выйти';
+      uploadBox.classList.remove('locked');
+      if(uploadHint) uploadHint.style.display='none';
+    }else{
+      document.getElementById('authWho').textContent='Вы не вошли';
+      document.getElementById('authOpen').textContent='Войти / Регистрация';
+      uploadBox.classList.add('locked');
+      if(uploadHint) uploadHint.style.display='block';
+    }
   }
 
-  // Слушаем изменения в базе в реальном времени
-  onSnapshot(query(worksCollection, orderBy("likes", "desc")), (snapshot) => {
-    renderGallery(snapshot.docs);
+  document.getElementById('authOpen').addEventListener('click',()=>{
+    if(getSession()){ if(confirm('Выйти из аккаунта?')){ clearSession(); updateAuthUI(); } return; }
+    authModal.classList.add('open');
   });
+  document.getElementById('authClose').addEventListener('click',()=>authModal.classList.remove('open'));
+  authModal.addEventListener('click',e=>{ if(e.target===authModal) authModal.classList.remove('open'); });
 
-  // Обработка кликов (Лайк, Удаление)
-  galleryGrid.addEventListener('click', async (e) => {
-    const likeBtn = e.target.closest('.like');
-    const delBtn = e.target.closest('.work-del');
-    
-    if (likeBtn) {
-      const id = likeBtn.dataset.id;
-      await updateDoc(doc(db, "works", id), { likes: increment(1) });
-    }
-    if (delBtn) {
-      const id = delBtn.dataset.id;
-      if(confirm('Удалить эту работу?')) {
-        await deleteDoc(doc(db, "works", id));
-      }
-    }
-  });
-
-  /* ===== Загрузка работы ===== */
-  const upFile = document.getElementById('upFile');
-  const upPreview = document.getElementById('upPreview');
-  const upPreviewImg = document.getElementById('upPreviewImg');
-  const upNotice = document.getElementById('upNotice');
-  let uploadedDataUrl = null;
-
-  upFile.addEventListener('change', () => {
-    const file = upFile.files[0];
-    if(!file) return;
-    if(file.size > 3*1024*1024){ alert('Файл больше 3 МБ'); return; }
-    const reader = new FileReader();
-    reader.onload = ev => {
-      uploadedDataUrl = ev.target.result;
-      upPreviewImg.src = uploadedDataUrl;
-      upPreview.style.display = 'block';
-    };
-    reader.readAsDataURL(file);
-  });
-
-  document.getElementById('upBtn').addEventListener('click', async () => {
-    const session = getSession();
-    if(!session){ alert('Сначала войдите в аккаунт'); return; }
-    
-    const title = document.getElementById('upTitle').value.trim();
-    const tag = document.getElementById('upTag').value.trim() || '#апсайклинг';
-    
-    if(!uploadedDataUrl){ alert('Выберите фото'); return; }
-    if(!title){ alert('Введите название'); return; }
-
-    await addDoc(collection(db, "works"), {
-      img: uploadedDataUrl,
-      emoji: "📦",
-      title,
-      author: session.name,
-      owner: session.email,
-      tag,
-      likes: 0
+  document.querySelectorAll('.auth-tabs button').forEach(b=>{
+    b.addEventListener('click',()=>{
+      authMode=b.dataset.tab;
+      document.querySelectorAll('.auth-tabs button').forEach(x=>x.classList.toggle('active',x===b));
+      authTitle.textContent=authMode==='login'?'Вход':'Регистрация';
+      authHint.textContent=authMode==='login'?'Введите e-mail и пароль.':'Придумайте e-mail, имя и пароль.';
+      authRegFields.style.display=authMode==='reg'?'block':'none';
+      authSubmit.textContent=authMode==='login'?'Войти':'Зарегистрироваться';
+      authErr.textContent='';
     });
-
-    // Очистка
-    upFile.value = '';
-    document.getElementById('upTitle').value = '';
-    document.getElementById('upTag').value = '';
-    uploadedDataUrl = null;
-    upPreview.style.display = 'none';
-    
-    upNotice.classList.add('show');
-    setTimeout(() => upNotice.classList.remove('show'), 4000);
   });
+
+  authSubmit.addEventListener('click',()=>{
+    const email=document.getElementById('authEmail').value.trim().toLowerCase();
+    const pass=document.getElementById('authPass').value;
+    const name=document.getElementById('authName').value.trim();
+    const users=getUsers();
+    authErr.textContent='';
+    if(!email||!pass){ authErr.textContent='Заполните e-mail и пароль.'; return; }
+    if(authMode==='reg'){
+      if(!name){ authErr.textContent='Введите имя.'; return; }
+      if(pass.length<4){ authErr.textContent='Пароль минимум 4 символа.'; return; }
+      if(users[email]){ authErr.textContent='Пользователь с таким e-mail уже есть.'; return; }
+      users[email]={name,pass}; setUsers(users); setSession({email,name});
+      authModal.classList.remove('open'); updateAuthUI();
+    }else{
+      if(!users[email]||users[email].pass!==pass){ authErr.textContent='Неверный e-mail или пароль.'; return; }
+      setSession({email,name:users[email].name});
+      authModal.classList.remove('open'); updateAuthUI();
+    }
+  });
+  updateAuthUI();
+
+  /* ===== Генератор идей ===== */
+  const IDEAS = {
+    "Джинсовка":[{t:"Сумка-шоппер с текстильным коллажем",d:"Отрезать рукава, сшить дно, украсить лоскутами и вышивкой.",lvl:"Средний"},{t:"Чехол для ноутбука",d:"Уплотнить двойным слоем денима, добавить карман.",lvl:"Средний"},{t:"Фартук для мастерской",d:"Перекроить спинку в передник, карманы — из деталей.",lvl:"Начальный"}],
+    "Футболка":[{t:"Коврик в технике плетения",d:"Нарезать на полосы и сплести круглый коврик.",lvl:"Начальный"},{t:"Шоппер с росписью",d:"Усилить дно, нанести акриловый при
