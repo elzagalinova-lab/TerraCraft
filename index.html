@@ -1,0 +1,98 @@
+  /* ===== Галерея из Firebase ===== */
+  const galleryGrid = document.getElementById('galleryGrid');
+
+  function renderGallery(docs){
+    const sorted = docs.sort((a,b) => b.data().likes - a.data().likes);
+    
+    galleryGrid.innerHTML = sorted.map(d => {
+      const w = d.data();
+      return `
+      <div class="work" data-id="${d.id}">
+        <div class="work-img">
+          <span>${w.emoji||'📦'}</span>
+          <img src="${w.img}" alt="${w.title}" onload="this.previousElementSibling.style.display='none'" onerror="this.style.display='none'">
+        </div>
+        <div class="work-body">
+          <h4>${w.title}</h4>
+          <p>${w.author} · ${w.tag}</p>
+          <div class="work-foot">
+            <button class="like" data-id="${d.id}">❤ <span>${w.likes}</span></button>
+            ${(w.owner===getSession()?.email) ? `<button class="work-del" data-id="${d.id}">удалить</button>` : `<span>арт-объект</span>`}
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // Слушаем изменения в базе в реальном времени
+  onSnapshot(query(worksCollection, orderBy("likes", "desc")), (snapshot) => {
+    renderGallery(snapshot.docs);
+  });
+
+  // Обработка кликов (Лайк, Удаление)
+  galleryGrid.addEventListener('click', async (e) => {
+    const likeBtn = e.target.closest('.like');
+    const delBtn = e.target.closest('.work-del');
+    
+    if (likeBtn) {
+      const id = likeBtn.dataset.id;
+      await updateDoc(doc(db, "works", id), { likes: increment(1) });
+    }
+    if (delBtn) {
+      const id = delBtn.dataset.id;
+      if(confirm('Удалить эту работу?')) {
+        await deleteDoc(doc(db, "works", id));
+      }
+    }
+  });
+
+  /* ===== Загрузка работы ===== */
+  const upFile = document.getElementById('upFile');
+  const upPreview = document.getElementById('upPreview');
+  const upPreviewImg = document.getElementById('upPreviewImg');
+  const upNotice = document.getElementById('upNotice');
+  let uploadedDataUrl = null;
+
+  upFile.addEventListener('change', () => {
+    const file = upFile.files[0];
+    if(!file) return;
+    if(file.size > 3*1024*1024){ alert('Файл больше 3 МБ'); return; }
+    const reader = new FileReader();
+    reader.onload = ev => {
+      uploadedDataUrl = ev.target.result;
+      upPreviewImg.src = uploadedDataUrl;
+      upPreview.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  });
+
+  document.getElementById('upBtn').addEventListener('click', async () => {
+    const session = getSession();
+    if(!session){ alert('Сначала войдите в аккаунт'); return; }
+    
+    const title = document.getElementById('upTitle').value.trim();
+    const tag = document.getElementById('upTag').value.trim() || '#апсайклинг';
+    
+    if(!uploadedDataUrl){ alert('Выберите фото'); return; }
+    if(!title){ alert('Введите название'); return; }
+
+    await addDoc(collection(db, "works"), {
+      img: uploadedDataUrl,
+      emoji: "📦",
+      title,
+      author: session.name,
+      owner: session.email,
+      tag,
+      likes: 0
+    });
+
+    // Очистка
+    upFile.value = '';
+    document.getElementById('upTitle').value = '';
+    document.getElementById('upTag').value = '';
+    uploadedDataUrl = null;
+    upPreview.style.display = 'none';
+    
+    upNotice.classList.add('show');
+    setTimeout(() => upNotice.classList.remove('show'), 4000);
+  });
